@@ -5,7 +5,30 @@ from personal_trainer import PersonalTrainer
 os.environ['OPENAI_API_KEY'] = 'test_api_key'
 
 class TestPersonalTrainer(unittest.TestCase):
-    
+    @patch.object(PersonalTrainer, 'find_youtube_video')
+    def test_add_youtube_video_link(self, mock_find_youtube_video):
+        # Mock the response from find_youtube_video
+        mock_find_youtube_video.side_effect = [
+            "youtube.com/video1",
+            None,  # Simulate not finding a video
+            "youtube.com/video2"
+        ]
+
+        # Sample results
+        results = [
+            {'day': 'Monday', 'activity': 'Running', 'duration': 30},
+            {'day': 'Tuesday', 'activity': 'Strength Training', 'duration': 45},
+            {'day': 'Wednesday', 'activity': 'Yoga', 'duration': 60}
+        ]
+
+        ps = PersonalTrainer()
+        ps.add_youtube_video_link(results)
+
+        # Assertions
+        self.assertEqual(results[0]['youtube_link'], "youtube.com/video1")
+        self.assertNotIn('youtube_link', results[1])
+        self.assertEqual(results[2]['youtube_link'], "youtube.com/video2")
+
     @patch("personal_trainer.LLMChain")
     def test_build_training_plan(self, mock_LLMChain):
         expected_result = [
